@@ -1,124 +1,82 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 
-export default function Home() {
+export default function Page() {
   const [tarefas, setTarefas] = useState([]);
   const [novaTarefa, setNovaTarefa] = useState("");
   const [filtro, setFiltro] = useState("Todas");
-  const [carregado, setCarregado] = useState(false);
+  const [carregou, setCarregou] = useState(false);
 
-  // Carregar tarefas do LocalStorage
   useEffect(() => {
-    const tarefasSalvas = localStorage.getItem("minhas-tarefas");
+    const salvas = localStorage.getItem("tarefas");
 
-    if (tarefasSalvas) {
+    if (salvas) {
       try {
-        const dados = JSON.parse(tarefasSalvas);
-        if (Array.isArray(dados)) {
-          setTarefas(dados);
-        }
+        setTarefas(JSON.parse(salvas));
       } catch {
         setTarefas([]);
       }
     }
 
-    setCarregado(true);
+    setCarregou(true);
   }, []);
 
-  // Salvar tarefas no LocalStorage
   useEffect(() => {
-    if (carregado) {
-      localStorage.setItem("minhas-tarefas", JSON.stringify(tarefas));
+    if (carregou) {
+      localStorage.setItem("tarefas", JSON.stringify(tarefas));
     }
-  }, [tarefas, carregado]);
+  }, [tarefas, carregou]);
 
-  // Adicionar tarefa
   function adicionarTarefa(e) {
     e.preventDefault();
 
     if (!novaTarefa.trim()) return;
 
     const tarefa = {
-      id: crypto.randomUUID(),
-      texto: novaTarefa.trim(),
-      concluida: false,
+      id: Date.now(),
+      nome: novaTarefa.trim(),
+      feita: false,
     };
 
-    setTarefas((anterior) => [...anterior, tarefa]);
+    setTarefas((lista) => [...lista, tarefa]);
     setNovaTarefa("");
   }
 
-  // Concluir tarefa
-  function concluirTarefa(id) {
-    setTarefas((anterior) =>
-      anterior.map((tarefa) =>
+  function marcarTarefa(id) {
+    setTarefas((lista) =>
+      lista.map((tarefa) =>
         tarefa.id === id
-          ? { ...tarefa, concluida: !tarefa.concluida }
+          ? { ...tarefa, feita: !tarefa.feita }
           : tarefa
       )
     );
   }
 
-  // Excluir tarefa
   function excluirTarefa(id) {
-    setTarefas((anterior) =>
-      anterior.filter((tarefa) => tarefa.id !== id)
+    setTarefas((lista) =>
+      lista.filter((tarefa) => tarefa.id !== id)
     );
   }
 
-  // Excluir todas as tarefas concluídas
-  function limparConcluidas() {
-    setTarefas((anterior) =>
-      anterior.filter((tarefa) => !tarefa.concluida)
-    );
-  }
-
-  // Filtrar tarefas
   const tarefasFiltradas = tarefas.filter((tarefa) => {
-    if (filtro === "Pendentes") return !tarefa.concluida;
-    if (filtro === "Concluídas") return tarefa.concluida;
+    if (filtro === "Pendentes") return !tarefa.feita;
+    if (filtro === "Concluídas") return tarefa.feita;
     return true;
   });
 
-  const totalConcluidas = tarefas.filter(
-    (tarefa) => tarefa.concluida
-  ).length;
-
-  const totalPendentes = tarefas.length - totalConcluidas;
-
-  const filtros = ["Todas", "Pendentes", "Concluídas"];
-
-  if (!carregado) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-slate-100">
-        <p className="text-slate-500">Carregando tarefas...</p>
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-8 sm:py-14">
-      <div className="mx-auto w-full max-w-2xl">
+    <main className="min-h-screen bg-slate-100 px-4 py-10">
+      <div className="mx-auto max-w-xl">
 
-        {/* Cabeçalho */}
         <header className="mb-8 text-center">
-          <div className="mb-3 text-5xl">📝</div>
-
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-800">
+          <h1 className="text-3xl font-bold text-slate-800 sm:text-4xl">
             Minha To-Do List
           </h1>
-
-          <p className="mt-2 text-slate-500">
-            Organize suas tarefas e acompanhe seu progresso.
-          </p>
         </header>
 
-        {/* Container principal */}
-        <section className="rounded-2xl bg-white p-5 shadow-lg sm:p-8">
+        <section className="rounded-xl bg-white p-5 shadow-sm sm:p-8">
 
-          {/* Formulário */}
           <form
             onSubmit={adicionarTarefa}
             className="flex flex-col gap-3 sm:flex-row"
@@ -127,150 +85,80 @@ export default function Home() {
               type="text"
               value={novaTarefa}
               onChange={(e) => setNovaTarefa(e.target.value)}
-              placeholder="O que você precisa fazer?"
-              maxLength={150}
-              className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="Digite uma nova tarefa..."
+              className="min-w-0 flex-1 rounded-lg border border-slate-300 p-3 text-slate-800 outline-none focus:border-slate-600 focus:ring-1 focus:ring-slate-300"
             />
 
             <button
               type="submit"
-              disabled={!novaTarefa.trim()}
-              className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-slate-800 px-5 py-3 font-medium text-white transition hover:bg-slate-700"
             >
-              + Adicionar
+              Adicionar
             </button>
           </form>
 
-          {/* Estatísticas */}
-          <div className="mt-7 grid grid-cols-3 gap-3">
-
-            <div className="rounded-xl bg-blue-50 p-3 text-center">
-              <p className="text-2xl font-bold text-blue-600">
-                {tarefas.length}
-              </p>
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                Total
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-amber-50 p-3 text-center">
-              <p className="text-2xl font-bold text-amber-600">
-                {totalPendentes}
-              </p>
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                Pendentes
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-green-50 p-3 text-center">
-              <p className="text-2xl font-bold text-green-600">
-                {totalConcluidas}
-              </p>
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                Concluídas
-              </p>
-            </div>
-
-          </div>
-
-          {/* Barra de progresso */}
-          <div className="mt-6">
-            <div className="mb-2 flex justify-between text-sm">
-              <span className="font-medium text-slate-600">
-                Seu progresso
-              </span>
-
-              <span className="font-bold text-blue-600">
-                {tarefas.length > 0
-                  ? Math.round((totalConcluidas / tarefas.length) * 100)
-                  : 0}%
-              </span>
-            </div>
-
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-              <div
-                className="h-full rounded-full bg-blue-600 transition-all duration-300"
-                style={{
-                  width: `${
-                    tarefas.length > 0
-                      ? (totalConcluidas / tarefas.length) * 100
-                      : 0
-                  }%`,
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Filtros */}
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-slate-800">
+          <div className="mb-4 mt-7 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-800">
               Minhas tarefas
             </h2>
 
-            <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
-              {filtros.map((opcao) => (
-                <button
-                  key={opcao}
-                  onClick={() => setFiltro(opcao)}
-                  className={`rounded-md px-3 py-2 text-xs font-semibold transition sm:text-sm ${
-                    filtro === opcao
-                      ? "bg-blue-600 text-white shadow"
-                      : "text-slate-500 hover:text-slate-800"
-                  }`}
-                >
-                  {opcao}
-                </button>
-              ))}
-            </div>
+            <span className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600">
+              Total: {tarefas.length}
+            </span>
           </div>
 
-          {/* Lista de tarefas */}
-          <div className="mt-5 space-y-3">
+          <div className="mb-5 flex gap-2">
+            {["Todas", "Pendentes", "Concluídas"].map((opcao) => (
+              <button
+                key={opcao}
+                type="button"
+                onClick={() => setFiltro(opcao)}
+                className={`flex-1 rounded-lg px-2 py-2 text-sm font-medium transition ${
+                  filtro === opcao
+                    ? "bg-slate-800 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {opcao}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-3">
 
             {tarefasFiltradas.length === 0 ? (
-              <div className="rounded-xl border-2 border-dashed border-slate-200 py-12 text-center">
-                <div className="mb-3 text-4xl">📋</div>
-
-                <p className="font-medium text-slate-600">
-                  {tarefas.length === 0
-                    ? "Nenhuma tarefa cadastrada."
-                    : "Nenhuma tarefa encontrada."}
-                </p>
-
-                <p className="mt-1 text-sm text-slate-400">
-                  Adicione uma nova tarefa para começar!
-                </p>
-              </div>
+              <p className="py-8 text-center text-slate-400">
+                Nenhuma tarefa encontrada.
+              </p>
             ) : (
               tarefasFiltradas.map((tarefa) => (
                 <div
                   key={tarefa.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 transition hover:border-blue-200"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
                 >
                   <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
                     <input
                       type="checkbox"
-                      checked={tarefa.concluida}
-                      onChange={() => concluirTarefa(tarefa.id)}
-                      className="h-5 w-5 shrink-0 cursor-pointer accent-blue-600"
+                      checked={tarefa.feita}
+                      onChange={() => marcarTarefa(tarefa.id)}
+                      className="h-5 w-5 shrink-0 accent-slate-700"
                     />
 
                     <span
-                      className={`break-words text-sm font-medium sm:text-base ${
-                        tarefa.concluida
+                      className={`break-words ${
+                        tarefa.feita
                           ? "text-slate-400 line-through"
                           : "text-slate-700"
                       }`}
                     >
-                      {tarefa.texto}
+                      {tarefa.nome}
                     </span>
                   </label>
 
                   <button
+                    type="button"
                     onClick={() => excluirTarefa(tarefa.id)}
-                    aria-label={`Excluir tarefa: ${tarefa.texto}`}
-                    title="Excluir tarefa"
-                    className="shrink-0 rounded-lg px-3 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                    className="shrink-0 rounded-md px-2 py-1 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                   >
                     Excluir
                   </button>
@@ -279,26 +167,7 @@ export default function Home() {
             )}
 
           </div>
-
-          {/* Limpar concluídas */}
-          {totalConcluidas > 0 && (
-            <div className="mt-6 flex justify-end border-t border-slate-100 pt-5">
-              <button
-                onClick={limparConcluidas}
-                className="text-sm font-semibold text-red-500 transition hover:text-red-700"
-              >
-                Limpar tarefas concluídas
-              </button>
-            </div>
-          )}
-
         </section>
-
-        {/* Rodapé */}
-        <footer className="mt-6 text-center text-sm text-slate-400">
-          Suas tarefas ficam salvas automaticamente no navegador.
-        </footer>
-
       </div>
     </main>
   );
