@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from "react";
 
+type Tarefa = {
+  id: number;
+  nome: string;
+  feita: boolean;
+};
+
 export default function Page() {
-  const [tarefas, setTarefas] = useState([]);
+  const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [novaTarefa, setNovaTarefa] = useState("");
   const [filtro, setFiltro] = useState("Todas");
   const [carregou, setCarregou] = useState(false);
@@ -28,7 +34,7 @@ export default function Page() {
     }
   }, [tarefas, carregou]);
 
-  function adicionarTarefa(e) {
+  function adicionarTarefa(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!novaTarefa.trim()) return;
@@ -43,7 +49,7 @@ export default function Page() {
     setNovaTarefa("");
   }
 
-  function marcarTarefa(id) {
+  function marcarTarefa(id: number) {
     setTarefas((lista) =>
       lista.map((tarefa) =>
         tarefa.id === id
@@ -53,7 +59,7 @@ export default function Page() {
     );
   }
 
-  function excluirTarefa(id) {
+  function excluirTarefa(id: number) {
     setTarefas((lista) =>
       lista.filter((tarefa) => tarefa.id !== id)
     );
